@@ -9,6 +9,7 @@ const int W = 1200;
 const int H = 800;
 
 float DEGTORAD = 0.017453f;
+float RADTODEG = 57.296739f;
 
 
 class Entity {
@@ -74,28 +75,91 @@ class Tank: public Entity {
 };
 
 
+class Car {
+    private:
+    Vector2f position;
+    float rotation, speed, alpha, axleOmega, axleAlpha; 
+    public:
+    RectangleShape wheel, body;
+    // lines[0].position = sf::Vector2f(0, 0);
+    // ( )
+    // lines[1].position = sf::Vector2f(200, 200);
+
+    Car(float x, float y, float w, float h) {
+        position.x = x;
+        position.y = y;
+
+        wheel.setSize(sf::Vector2f(w, h));
+        wheel.setPosition(position);
+        wheel.setRotation(45);
+        wheel.setOrigin(w/2, h);
+        // movement settings 
+        axleOmega = 50;
+        speed = 150;
+        rotation = -90;
+    }
+
+    void update(float dt) {
+        if (Keyboard::isKeyPressed(Keyboard::Right) || Keyboard::isKeyPressed(Keyboard::D)) axleAlpha += axleOmega * dt;
+        if (Keyboard::isKeyPressed(Keyboard::Left) || Keyboard::isKeyPressed(Keyboard::A)) axleAlpha -= axleOmega * dt;
+        std::cout << axleAlpha << std::endl;
+        int direction = 0;
+        if (Keyboard::isKeyPressed(Keyboard::Up) || Keyboard::isKeyPressed(Keyboard::W)) {
+            direction = 1;
+        } else if (Keyboard::isKeyPressed(Keyboard::Down) || Keyboard::isKeyPressed(Keyboard::S)) {
+            direction = -1;
+        } else {
+            direction = 0;
+        }
+
+        if (direction != 0) {
+            float forwardSpeed = cos(axleAlpha * DEGTORAD) * speed;
+            float rotationalSpeed = sin(axleAlpha * DEGTORAD) * speed;
+            float move = forwardSpeed * dt * direction;
+            // move the car
+            position.x += cos(alpha * DEGTORAD) * move;
+            position.y += sin(alpha * DEGTORAD) * move;
+            // rotate the car
+            alpha += ((rotationalSpeed * dt) / 150) * RADTODEG * direction;
+        }
+        
+
+        
+        
+        
+        wheel.setRotation(alpha + 90);
+        // std::cout << x << " " << y << std::endl;
+        wheel.setPosition(position);
+    }
+
+    // Car(float x1, float y1, float x2, float y2) {
+        
+    // }
+};
+
 int main()
 {
     // srand(time(0));
     Clock clock;
     float dt;
-    sf::View view;
-    float vw = W, vh = H;
-    view.setCenter(sf::Vector2f(100.f, 100.f));
-    view.setSize(sf::Vector2f(vw, vh));
+    // sf::View view;
+    // float vw = W, vh = H;
+    // view.setCenter(sf::Vector2f(100.f, 100.f));
+    // view.setSize(sf::Vector2f(vw, vh));
 
     RenderWindow window(VideoMode(W, H), "Asteroids!"); //  sf::Style::Fullscreen
     window.setFramerateLimit(60);
 
-    Texture t;
-    t.loadFromFile("images/tigr.png");
-    t.setSmooth(true);
+    // Texture t;
+    // t.loadFromFile("images/tigr.png");
+    // t.setSmooth(true);
 
-    Tank player(t);
+    // Tank player(t);
 
-    CircleShape circle;
-    circle.setRadius(50);
-    circle.setPosition(300, 300);
+    Car car(400, 400, 20, 150);
+
+
+    
 
     /////main loop/////
     while (window.isOpen())
@@ -107,12 +171,11 @@ int main()
                 window.close();
 
 
-            if (event.type == sf::Event::MouseWheelMoved) {
-                std::cout << vw << vh << std::endl;
-                // view.setSize(vw -= event.mouseWheel.delta * 100.0, vh -= event.mouseWheel.delta * 100.0 * (H/W));
-                view.setSize(vw *= 1.0 - event.mouseWheel.delta * 0.1, vh *= 1.0 - event.mouseWheel.delta * 0.1);
+            // if (event.type == sf::Event::MouseWheelMoved) {
+            //     std::cout << vw << vh << std::endl;
+            //     view.setSize(vw *= 1.0 - event.mouseWheel.delta * 0.1, vh *= 1.0 - event.mouseWheel.delta * 0.1);
 
-            }
+            // }
         }
 
         
@@ -120,15 +183,16 @@ int main()
         //////update//////
         dt = clock.restart().asSeconds();
         // std::cout << dt << std::endl;
-        player.update(dt);
-        view.setCenter(player.x, player.y);
+        car.update(dt);
+        // view.setCenter(player.x, player.y);
 
         //////draw//////
         window.clear();
-        window.setView(view);
-        window.draw(circle);
-        window.draw(player.sBody);
-        window.draw(player.sTurrent);
+        // window.setView(view);
+        // window.draw(circle);
+        // window.draw(player.sBody);
+        // window.draw(player.sTurrent);
+        window.draw(car.wheel);
         window.display();
     }
 

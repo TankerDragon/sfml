@@ -78,30 +78,65 @@ class Tank: public Entity {
 class Car {
     private:
     Vector2f position;
-    float rotation, speed, alpha, axleOmega, axleAlpha; 
+    float rotation, speed, alpha, axleOmega, axleAlpha, l; // l - distance between front wheel and rotating point
+
     public:
     RectangleShape wheel, body;
-    // lines[0].position = sf::Vector2f(0, 0);
-    // ( )
-    // lines[1].position = sf::Vector2f(200, 200);
+    Sprite sTruck;
+    // visualizers
+    CircleShape rotatingPoint;
+    RectangleShape bodyRect;
 
-    Car(float x, float y, float w, float h) {
+    
+
+    Car(float x, float y, float w, float h, Texture &t) {
         position.x = x;
         position.y = y;
-
-        wheel.setSize(sf::Vector2f(w, h));
-        wheel.setPosition(position);
-        wheel.setRotation(45);
-        wheel.setOrigin(w/2, h);
         // movement settings 
         axleOmega = 50;
-        speed = 150;
+        speed = 500;
         rotation = -90;
+        // texture
+        sTruck.setTexture(t);
+        sTruck.setTextureRect(IntRect(56, 42, 982, 356)); // 1038 - 56, 398 - 42 (792 - 56)
+        sTruck.setScale(0.3, 0.3);
+        sTruck.setPosition(position);
+        sTruck.setOrigin(736, 178); // 491
+        
+
+        // defaul settings of visualizers
+        rotatingPoint.setRadius(3);
+        rotatingPoint.setOrigin(1.5, 1.5);
+        rotatingPoint.setFillColor(sf::Color(255, 0, 0));
+        bodyRect.setSize(Vector2f(982, 356));
+        bodyRect.setScale(sTruck.getScale());
+        bodyRect.setFillColor(sf::Color(0, 0, 200, 90));
+        bodyRect.setOrigin(sTruck.getOrigin());
+
+
     }
 
     void update(float dt) {
         if (Keyboard::isKeyPressed(Keyboard::Right) || Keyboard::isKeyPressed(Keyboard::D)) axleAlpha += axleOmega * dt;
-        if (Keyboard::isKeyPressed(Keyboard::Left) || Keyboard::isKeyPressed(Keyboard::A)) axleAlpha -= axleOmega * dt;
+        else if (Keyboard::isKeyPressed(Keyboard::Left) || Keyboard::isKeyPressed(Keyboard::A)) axleAlpha -= axleOmega * dt;
+        else {
+           if (axleAlpha > 0) {
+            axleAlpha -= axleOmega * dt;
+           }
+           if (axleAlpha < 0) {
+            axleAlpha += axleOmega * dt;
+           }
+        // axleAlpha = 0;
+        }
+        
+
+
+        // limit rotating axle wheel
+        if (axleAlpha > 40) axleAlpha = 40;
+        if (axleAlpha < -40) axleAlpha = -40;
+
+
+
         std::cout << axleAlpha << std::endl;
         int direction = 0;
         if (Keyboard::isKeyPressed(Keyboard::Up) || Keyboard::isKeyPressed(Keyboard::W)) {
@@ -120,16 +155,27 @@ class Car {
             position.x += cos(alpha * DEGTORAD) * move;
             position.y += sin(alpha * DEGTORAD) * move;
             // rotate the car
-            alpha += ((rotationalSpeed * dt) / 150) * RADTODEG * direction;
+            alpha += ((rotationalSpeed * dt) / 100) * RADTODEG * direction;
         }
         
-
-        
-        
-        
-        wheel.setRotation(alpha + 90);
         // std::cout << x << " " << y << std::endl;
-        wheel.setPosition(position);
+        sTruck.setRotation(alpha + 180);
+        sTruck.setPosition(position);
+
+        // visualizers 
+        rotatingPoint.setPosition(position);
+        bodyRect.setRotation(alpha + 180);
+        bodyRect.setPosition(position);
+
+
+    }
+
+    void draw(RenderWindow &window) {
+        window.draw(sTruck);
+
+        // visualizers 
+        window.draw(bodyRect);
+        window.draw(rotatingPoint);
     }
 
     // Car(float x1, float y1, float x2, float y2) {
@@ -150,13 +196,13 @@ int main()
     RenderWindow window(VideoMode(W, H), "Asteroids!"); //  sf::Style::Fullscreen
     window.setFramerateLimit(60);
 
-    // Texture t;
-    // t.loadFromFile("images/tigr.png");
-    // t.setSmooth(true);
+    Texture tTruck;
+    tTruck.loadFromFile("images/truck.png");
+    tTruck.setSmooth(true);
 
     // Tank player(t);
 
-    Car car(400, 400, 20, 150);
+    Car car(100, 100, 20, 150, tTruck);
 
 
     
@@ -192,7 +238,7 @@ int main()
         // window.draw(circle);
         // window.draw(player.sBody);
         // window.draw(player.sTurrent);
-        window.draw(car.wheel);
+        car.draw(window);
         window.display();
     }
 

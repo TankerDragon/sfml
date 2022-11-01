@@ -7,7 +7,6 @@ using namespace sf;
 
 const int W = 1200;
 const int H = 800;
-const float G = 9.8;
 
 float DEGTORAD = 0.017453f;
 float RADTODEG = 57.296739f;
@@ -189,16 +188,24 @@ int main()
     // srand(time(0));
     Clock clock;
     float dt;
+    // sf::View view;
+    // float vw = W, vh = H;
     // view.setCenter(sf::Vector2f(100.f, 100.f));
     // view.setSize(sf::Vector2f(vw, vh));
-    RectangleShape stick;
-    float a, alpha=90*RADTODEG, omega=-7, len=600, myu=0.2;
-    stick.setSize(Vector2f(20,len));
-    stick.setOrigin(10,0);
-    
 
     RenderWindow window(VideoMode(W, H), "Asteroids!"); //  sf::Style::Fullscreen
     window.setFramerateLimit(60);
+
+    Texture tTruck;
+    tTruck.loadFromFile("images/truck.png");
+    tTruck.setSmooth(true);
+
+    // Tank player(t);
+
+    Car car(100, 100, 20, 150, tTruck);
+
+
+    
 
     /////main loop/////
     while (window.isOpen())
@@ -208,6 +215,8 @@ int main()
         {
             if (event.type == Event::Closed)
                 window.close();
+
+
             // if (event.type == sf::Event::MouseWheelMoved) {
             //     std::cout << vw << vh << std::endl;
             //     view.setSize(vw *= 1.0 - event.mouseWheel.delta * 0.1, vh *= 1.0 - event.mouseWheel.delta * 0.1);
@@ -219,28 +228,17 @@ int main()
 
         //////update//////
         dt = clock.restart().asSeconds();
-
-        a = -myu*omega -G * sin(alpha);
-        omega += a * dt;
-        alpha += omega *dt;
-
-        std::cout << alpha << std::endl;
-
-
-
         // std::cout << dt << std::endl;
-        // car.update(dt);
-        stick.setPosition(W/2,100);
-        stick.setRotation(alpha * RADTODEG);
+        car.update(dt);
         // view.setCenter(player.x, player.y);
 
         //////draw//////
         window.clear();
         // window.setView(view);
-        window.draw(stick);
+        // window.draw(circle);
         // window.draw(player.sBody);
         // window.draw(player.sTurrent);
-        // car.draw(window);
+        car.draw(window);
         window.display();
     }
 

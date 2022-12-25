@@ -1,11 +1,11 @@
-//#include "Game.hpp"
-
-//int main(int, char const**) {
-    //srand(time(NULL));
-    //Game game;
-    //game.run();
-    //return EXIT_SUCCESS;
-//}
+/// #include "Game.hpp"
+/// 
+/// int main(int, char const**) {
+///     srand(time(NULL));
+///     Game game;
+///     game.run();
+///     return EXIT_SUCCESS;
+/// }
 
 #include <iostream>
 #include <SFML/Graphics.hpp>
@@ -26,6 +26,11 @@ float pointToLine (sf::Vector2f point, sf::Vector2f line1, sf::Vector2f line2) {
     return (l * (point.y - line1.y) - h * (point.x - line1.x)) / sqrt(l * l + h * h);
 }
 
+bool isPointToLinePositive(sf::Vector2f point, sf::Vector2f line1, sf::Vector2f line2) {
+    float h = line2.y - line1.y, l = line2.x - line1.x;
+    return ((l * (point.y - line1.y) - h * (point.x - line1.x)) / sqrt(l * l + h * h)) >= 0;
+}
+
 class CollidableConvex: public sf::ConvexShape {
 private:
 public:
@@ -44,15 +49,26 @@ public:
     }
 };
 
-bool isCollide(CollidableConvex convex1, CollidableConvex convex2) {
-
-    for (auto it1 = convex1.points.begin() + 1; it1 != convex1.points.end(); it1++) {
-        std::cout << std::endl;
+bool isCollide(CollidableConvex& convex1, CollidableConvex& convex2) {
+    bool last = false;
+    auto endline = convex1.points.end();
+    std::cout << "start" << std::endl;
+    for (auto it1 = convex1.points.begin(); it1 != convex1.points.end(); it1++) {
+        std::cout << "loop 1..." << std::endl;
         for (auto it2 = convex2.points.begin(); it2 != convex2.points.end(); it2++) {
-            std::cout << pointToLine(convex2.getPosition() + *it2, convex1.getPosition() + *(it1 - 1), convex1.getPosition() + *it1) << std::endl;
+            std::cout << "loop 2..." << std::endl;
+            last = false;
+            endline = (it1 == convex1.points.end() - 1) ? convex1.points.begin() : endline = it1 + 1;
+            if (isPointToLinePositive(convex2.getPosition() + *it2,
+                convex1.getPosition() + *it1,
+                convex1.getPosition() + *(endline))) {
+                last = true;
+                break;
+            }
         }
+        if (!last) return false;
     }
-    return false;
+    return true;
 }
 
 int main() {
@@ -60,10 +76,10 @@ int main() {
 
     //////////////////// 
 
-    const float speed = 5.f;
+    const float speed = 200.f;
 
     sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
-    window.setFramerateLimit(30);
+    window.setFramerateLimit(60);
 
     CollidableConvex convex;
     convex.setPointCount(5);
@@ -91,6 +107,8 @@ int main() {
     convex2.setFillColor(sf::Color::Transparent);
     convex2.setOutlineThickness(3.f);
 
+    sf::Clock clock;
+
 
     while (window.isOpen())
     {
@@ -101,29 +119,29 @@ int main() {
                 window.close();
         }
 
+        float dt = clock.restart().asSeconds();
+
         // update 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            convex.setPosition(convex.getPosition().x, convex.getPosition().y - speed);
+            convex.setPosition(convex.getPosition().x, convex.getPosition().y - speed * dt);
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            convex.setPosition(convex.getPosition().x, convex.getPosition().y + speed);
+            convex.setPosition(convex.getPosition().x, convex.getPosition().y + speed * dt);
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            convex.setPosition(convex.getPosition().x - speed, convex.getPosition().y);
+            convex.setPosition(convex.getPosition().x - speed * dt, convex.getPosition().y);
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-            convex.setPosition(convex.getPosition().x + speed, convex.getPosition().y);
+            convex.setPosition(convex.getPosition().x + speed * dt, convex.getPosition().y);
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-            convex.setRotation(convex.getRotation() - speed);
+            convex.setRotation(convex.getRotation() - speed * dt);
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
-            convex.setRotation(convex.getRotation() + speed);
+            convex.setRotation(convex.getRotation() + speed * dt);
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) {
-            system("cls");
-
-            isCollide(convex, convex2);
+        if (true) {
+            std::cout << "is collide: " << (!isCollide(convex, convex2) || !isCollide(convex2, convex)) << std::endl;
         }
 
         // draw

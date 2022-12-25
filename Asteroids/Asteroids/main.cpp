@@ -91,7 +91,7 @@ int main() {
     convex.setPosition(sf::Vector2f(50.f, 50.f));
     //convex.setRotation(45.f);
     convex.setFillColor(sf::Color::Transparent);
-    convex.setOutlineThickness(3.f);
+    convex.setOutlineThickness(1.f);
 
     ////////////////////////
 
@@ -105,7 +105,7 @@ int main() {
     convex2.setPosition(sf::Vector2f(350.f, 250.f));
     //convex2.setRotation(15.f);
     convex2.setFillColor(sf::Color::Transparent);
-    convex2.setOutlineThickness(3.f);
+    convex2.setOutlineThickness(1.f);
 
     sf::Clock clock;
 
@@ -121,7 +121,7 @@ int main() {
 
         float dt = clock.restart().asSeconds();
 
-        // update 
+        // update
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
             convex.setPosition(convex.getPosition().x, convex.getPosition().y - speed * dt);
         }
@@ -140,8 +140,11 @@ int main() {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
             convex.setRotation(convex.getRotation() + speed * dt);
         }
-        if (true) {
-            std::cout << "is collide: " << (!isCollide(convex, convex2) || !isCollide(convex2, convex)) << std::endl;
+        if (!isCollide(convex, convex2) || !isCollide(convex2, convex)) {
+            convex.setFillColor(sf::Color::Transparent);
+        }
+        else {
+            convex.setFillColor(sf::Color::Red);
         }
 
         // draw

@@ -62,7 +62,7 @@ bool isCollide(CollidableConvex& convex1, CollidableConvex& convex2) {
             if (isPointToLinePositive(convex2.getPosition() + *it2,
                 convex1.getPosition() + *it1,
                 convex1.getPosition() + *(endline))) {
-                last = true;
+                last = true;    
                 break;
             }
         }

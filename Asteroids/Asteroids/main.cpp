@@ -11,6 +11,7 @@
 #include <SFML/Graphics.hpp>
 #include <math.h>
 #include <vector>
+#include "Constants.hpp"
 
 /// // this function calculates distatce between a line and a point
 /// float pointToLine2 (sf::Vector2f point, sf::Vector2f line1, sf::Vector2f line2) {
@@ -21,15 +22,29 @@
 ///     return distance;
 /// }
 
+sf::Vector2f getGlobalCoors(sf::Vector2f localCoors, sf::Vector2f position, float rotation) {
+    float sinA = sin(rotation * DEG2RAD), cosA = cos(rotation * DEG2RAD);
+    sf::Vector2f l(localCoors.x * cosA - localCoors.y * sinA, localCoors.y * cosA + localCoors.x * sinA);
+    return position + l;
+}
+
 float pointToLine (sf::Vector2f point, sf::Vector2f line1, sf::Vector2f line2) {
-    float h = line2.y - line1.y, l = line2.x - line1.x;
-    return (l * (point.y - line1.y) - h * (point.x - line1.x)) / sqrt(l * l + h * h);
+    float h = line2.y - line1.y, s = line2.x - line1.x;
+    return (s * (point.y - line1.y) - h * (point.x - line1.x)) / sqrt(s * s + h * h); // s * s + h * h = l * l
 }
 
 bool isPointToLinePositive(sf::Vector2f point, sf::Vector2f line1, sf::Vector2f line2) {
-    float h = line2.y - line1.y, l = line2.x - line1.x;
-    return ((l * (point.y - line1.y) - h * (point.x - line1.x)) / sqrt(l * l + h * h)) >= 0;
+    float h = line2.y - line1.y, s = line2.x - line1.x;
+    return ((s * (point.y - line1.y) - h * (point.x - line1.x)) / sqrt(s * s + h * h)) >= 0;
 }
+
+/// // if we iclude alpha0:
+/// float pointToLine(sf::Vector2f point, sf::Vector2f line1, sf::Vector2f line2, float alpha0) {
+///     float h = line2.y - line1.y, s = line2.x - line1.x, l = sqrt(s * s + h * h);
+///     float sinA = h / l, cosA = s / l, sinA0 = sin(alpha0 * DEG2RAD), cosA0 = cos(alpha0 * DEG2RAD);
+///     return (cosA * cosA0 - sinA * sinA0) * (point.y - line1.y) - (sinA * cosA0 + sinA0 * cosA) * (point.x - line1.x);
+/// }
+
 
 class CollidableConvex: public sf::ConvexShape {
 private:
@@ -49,19 +64,24 @@ public:
     }
 };
 
+
+
 bool isCollide(CollidableConvex& convex1, CollidableConvex& convex2) {
     bool last = false;
     auto endline = convex1.points.end();
-    std::cout << "start" << std::endl;
     for (auto it1 = convex1.points.begin(); it1 != convex1.points.end(); it1++) {
-        std::cout << "loop 1..." << std::endl;
         for (auto it2 = convex2.points.begin(); it2 != convex2.points.end(); it2++) {
-            std::cout << "loop 2..." << std::endl;
             last = false;
             endline = (it1 == convex1.points.end() - 1) ? convex1.points.begin() : endline = it1 + 1;
-            if (isPointToLinePositive(convex2.getPosition() + *it2,
-                convex1.getPosition() + *it1,
-                convex1.getPosition() + *(endline))) {
+            std::cout << convex1.getRotation() << std::endl;
+            if (isPointToLinePositive(
+                getGlobalCoors(*it2, convex2.getPosition(), convex2.getRotation()),
+                getGlobalCoors(*it1, convex1.getPosition(), convex1.getRotation()),
+                getGlobalCoors(*(endline), convex1.getPosition(), convex1.getRotation())
+                // convex2.getPosition() + *it2,
+                // convex1.getPosition() + *it1,
+                // convex1.getPosition() + *(endline)
+            )) {
                 last = true;    
                 break;
             }
@@ -72,7 +92,6 @@ bool isCollide(CollidableConvex& convex1, CollidableConvex& convex2) {
 }
 
 int main() {
-
 
     //////////////////// 
 
